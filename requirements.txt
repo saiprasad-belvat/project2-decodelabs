@@ -1,0 +1,9 @@
+# Project 2 - Basic Encryption & Decryption (Caesar Cipher)
+#
+# No external dependencies are required.
+# This project intentionally uses only the Python standard library
+# (built-in ord(), chr(), and basic string/int operations) because the
+# goal is to implement the encryption/decryption mathematics directly,
+# not to rely on a cryptography library.
+#
+# Requires: Python 3.6+

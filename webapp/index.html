@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 2 — Basic Encryption &amp; Decryption</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D1117;
+    --panel:#141A22;
+    --panel-2:#1B232E;
+    --line:#2A3542;
+    --paper:#EDE6D6;
+    --gold:#C9A227;
+    --gold-dim:#8f7223;
+    --teal:#4FB8A0;
+    --teal-dim:#2f6b60;
+    --rust:#C0552F;
+    --text:#EDEFF2;
+    --text-soft:#9AA5B4;
+    --text-faint:#5C6673;
+    --radius-sm:4px;
+    --radius-md:8px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+    margin:0;
+    color:var(--text);
+  }
+
+  code, .mono, .mono-label, input, select{
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  a{color:var(--teal);}
+
+  ::selection{background:var(--gold); color:#1a1508;}
+
+  :focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  /* ---------- NAV ---------- */
+  nav.topnav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(13,17,23,0.88);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topnav-inner{
+    max-width:1080px; margin:0 auto; padding:14px 28px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px;
+  }
+  .brand{
+    font-family:'Fraunces', serif; font-size:16px; color:var(--text);
+    display:flex; align-items:center; gap:8px;
+    white-space:nowrap;
+  }
+  .brand-mark{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 0 3px rgba(201,162,39,0.18);
+  }
+  .navlinks{
+    display:flex; gap:22px; overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .navlinks::-webkit-scrollbar{display:none;}
+  .navlinks a{
+    color:var(--text-soft); text-decoration:none; font-size:13.5px;
+    white-space:nowrap; padding:4px 0; border-bottom:1px solid transparent;
+    transition:color .15s, border-color .15s;
+  }
+  .navlinks a:hover{color:var(--text); border-color:var(--line);}
+
+  /* ---------- SECTION SCAFFOLDING ---------- */
+  section{padding:76px 0;}
+  section.tight{padding:56px 0;}
+  .section-head{max-width:640px; margin-bottom:36px;}
+  .section-head .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px; color:var(--gold);
+    margin:0 0 10px;
+  }
+  .section-head h2{font-size:30px;}
+  .section-head p{color:var(--text-soft); margin-top:12px; font-size:15.5px; max-width:60ch;}
+
+  hr.rule{border:none; border-top:1px solid var(--line); margin:0;}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:64px 0 60px;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:52px;
+    align-items:center;
+  }
+  .hero-eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px; color:var(--gold);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px;
+  }
+  .hero-eyebrow .dash{width:22px; height:1px; background:var(--gold-dim);}
+  .hero h1{
+    font-size:44px; line-height:1.08; letter-spacing:-0.015em;
+    max-width:14ch;
+  }
+  .hero h1 em{font-style:italic; color:var(--teal);}
+  .hero .lede{
+    margin-top:20px; color:var(--text-soft); font-size:16px; max-width:46ch;
+  }
+  .hero .facts{
+    margin-top:28px; display:flex; gap:28px; flex-wrap:wrap;
+  }
+  .fact .num{font-family:'Fraunces', serif; font-size:22px; color:var(--text);}
+  .fact .lbl{font-size:12px; color:var(--text-faint); margin-top:2px;}
+
+  /* ---------- CIPHER WHEEL ---------- */
+  .wheel-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:22px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .wheel-card .wheel-caption{
+    font-size:12px; color:var(--text-faint); text-align:center; margin-top:14px;
+  }
+  #wheelSvg{width:100%; max-width:280px; height:auto;}
+  .ring-outer text{fill:var(--text-soft); font-size:9px; font-family:'IBM Plex Mono', monospace;}
+  .ring-inner text{fill:var(--ink); font-size:9px; font-weight:600; font-family:'IBM Plex Mono', monospace;}
+  .ring-inner circle.disc{fill:var(--gold); opacity:0.92;}
+  .ring-outer circle.disc{fill:var(--panel-2); stroke:var(--line);}
+  #wheelGroup{transform-origin:140px 140px; transition:transform .5s cubic-bezier(.4,.0,.2,1);}
+  .wheel-hub{fill:var(--ink); stroke:var(--gold-dim); stroke-width:1;}
+  .wheel-hub-label{fill:var(--gold); font-size:11px; font-family:'IBM Plex Mono', monospace; text-anchor:middle;}
+
+  /* ---------- LIVE TOOL ---------- */
+  .tool{
+    margin-top:64px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:28px;
+  }
+  .tool-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:16px; margin-bottom:22px; flex-wrap:wrap;
+  }
+  .tool-title{font-size:13px; color:var(--text-faint); text-transform:none;}
+  .tool-title strong{color:var(--text); font-family:'IBM Plex Mono', monospace; font-weight:500;}
+
+  .field-label{
+    font-size:12px; color:var(--text-faint); margin-bottom:6px; display:block;
+  }
+  textarea#plaintextInput{
+    width:100%; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:var(--radius-sm); color:var(--paper); padding:12px 14px;
+    font-size:15px; resize:vertical; min-height:64px;
+  }
+  textarea#plaintextInput:focus{border-color:var(--gold-dim);}
+
+  .shift-row{
+    display:flex; align-items:center; gap:16px; margin-top:18px; flex-wrap:wrap;
+  }
+  .shift-row input[type=range]{
+    flex:1; min-width:180px; accent-color:var(--gold);
+  }
+  .shift-readout{
+    display:flex; align-items:baseline; gap:8px;
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:6px 12px; border-radius:var(--radius-sm);
+  }
+  .shift-readout .val{font-size:18px; color:var(--gold); font-weight:600;}
+  .shift-readout .norm{font-size:11px; color:var(--text-faint);}
+
+  .outputs{
+    margin-top:22px;
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  }
+  .output-box{
+    background:var(--panel-2); border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:14px 16px;
+    min-height:74px;
+  }
+  .output-box .field-label{display:flex; justify-content:space-between; align-items:center;}
+  .output-box .out-text{
+    font-size:15px; word-break:break-word; white-space:pre-wrap;
+  }
+  .output-box.cipher .out-text{color:var(--teal);}
+  .output-box.decrypted .out-text{color:var(--paper);}
+
+  .validation-row{
+    margin-top:18px; display:flex; align-items:center; gap:10px;
+    font-size:13.5px; color:var(--text-soft);
+  }
+  .validation-row .dot{
+    width:8px; height:8px; border-radius:50%; background:var(--teal);
+    box-shadow:0 0 0 3px rgba(79,184,160,0.18);
+  }
+
+  /* ---------- CHIPS / TAGS ---------- */
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:12px; font-family:'IBM Plex Mono', monospace;
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:4px 10px; border-radius:100px; color:var(--text-soft);
+  }
+
+  /* ---------- FEATURE GRID (what's included) ---------- */
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:var(--radius-md);
+    overflow:hidden;
+  }
+  .feature{
+    background:var(--panel); padding:24px; min-height:150px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .feature .f-icon{width:26px; height:26px;}
+  .feature h3{font-size:15.5px; font-family:'IBM Plex Sans',sans-serif; font-weight:600;}
+  .feature p{font-size:13.5px; color:var(--text-soft); margin:0;}
+
+  /* ---------- IPO DIAGRAM ---------- */
+  .ipo-flow{
+    display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:0;
+    align-items:stretch; margin-top:8px;
+  }
+  .ipo-stage{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:20px; display:flex; flex-direction:column; gap:8px;
+  }
+  .ipo-stage .stage-tag{font-size:11px; color:var(--gold); font-family:'IBM Plex Mono',monospace;}
+  .ipo-stage h3{font-size:16px;}
+  .ipo-stage p{font-size:13px; color:var(--text-soft); margin:0;}
+  .ipo-arrow{
+    display:flex; align-items:center; justify-content:center; padding:0 10px;
+    color:var(--text-faint); font-size:18px;
+  }
+  @media (max-width:720px){
+    .ipo-flow{grid-template-columns:1fr;}
+    .ipo-arrow{transform:rotate(90deg); padding:8px 0;}
+  }
+
+  .flow-strip{
+    margin-top:40px; display:flex; align-items:center; flex-wrap:wrap;
+    gap:0; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .flow-node{
+    background:var(--panel-2); border:1px solid var(--line);
+    padding:8px 14px; border-radius:var(--radius-sm); color:var(--text-soft);
+  }
+  .flow-sep{color:var(--text-faint); padding:0 10px;}
+
+  /* ---------- MATH STEPPER ---------- */
+  .math-layout{
+    display:grid; grid-template-columns:0.85fr 1.15fr; gap:40px; align-items:start;
+  }
+  @media (max-width:820px){ .math-layout{grid-template-columns:1fr;} }
+
+  .formula-card{
+    background:var(--panel-2); border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:18px 20px; margin-bottom:14px;
+  }
+  .formula-card .flabel{font-size:11.5px; color:var(--text-faint); margin-bottom:8px;}
+  .formula-card .fmath{font-family:'IBM Plex Mono', monospace; font-size:16px; color:var(--gold);}
+
+  .stepper{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:24px;
+  }
+  .stepper-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+  .stepper-head .letter-badge{
+    width:44px; height:44px; border-radius:var(--radius-sm);
+    background:var(--gold); color:#1a1508; font-family:'IBM Plex Mono',monospace;
+    font-size:20px; font-weight:600; display:flex; align-items:center; justify-content:center;
+  }
+  .step-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0;}
+  .step-list li{
+    display:grid; grid-template-columns:22px 1fr auto; gap:14px; align-items:center;
+    padding:11px 0; border-bottom:1px solid var(--line); font-size:13.5px;
+  }
+  .step-list li:last-child{border-bottom:none;}
+  .step-list .step-n{color:var(--text-faint); font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .step-list .step-desc{color:var(--text-soft);}
+  .step-list .step-val{
+    font-family:'IBM Plex Mono', monospace; color:var(--teal); font-size:14.5px;
+    background:var(--panel-2); padding:3px 10px; border-radius:var(--radius-sm);
+    min-width:52px; text-align:center;
+  }
+  .step-list li.result .step-val{color:var(--gold); background:rgba(201,162,39,0.1);}
+
+  /* ---------- EDGE CASE TABLE ---------- */
+  table.edge-table{
+    width:100%; border-collapse:collapse; margin-top:8px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md);
+    overflow:hidden;
+  }
+  table.edge-table th, table.edge-table td{
+    text-align:left; padding:14px 18px; font-size:13.5px; border-bottom:1px solid var(--line);
+  }
+  table.edge-table th{color:var(--text-faint); font-weight:500; font-size:12px;}
+  table.edge-table td{color:var(--text-soft);}
+  table.edge-table td.mono-cell{font-family:'IBM Plex Mono', monospace; color:var(--text);}
+  table.edge-table tr:last-child td{border-bottom:none;}
+  table.edge-table .kept{color:var(--teal);}
+
+  /* ---------- SECURITY ---------- */
+  .vuln-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:720px){.vuln-grid{grid-template-columns:1fr;}}
+  .vuln-card{
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--rust);
+    border-radius:var(--radius-sm); padding:22px;
+  }
+  .vuln-card .v-tag{font-size:11px; color:var(--rust); font-family:'IBM Plex Mono',monospace; margin-bottom:8px;}
+  .vuln-card h3{font-size:16.5px; margin-bottom:8px;}
+  .vuln-card p{font-size:13.5px; color:var(--text-soft); margin:0;}
+
+  .brute-toggle{
+    margin-top:24px; background:none; border:1px solid var(--line); color:var(--text-soft);
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; padding:9px 16px;
+    border-radius:var(--radius-sm); cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .brute-toggle:hover{border-color:var(--gold-dim); color:var(--text);}
+  #bruteTable{margin-top:16px; display:none;}
+  #bruteTable.open{display:block;}
+  .brute-grid{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:var(--radius-sm);
+    overflow:hidden; max-height:360px; overflow-y:auto;
+  }
+  @media (max-width:600px){.brute-grid{grid-template-columns:1fr;}}
+  .brute-row{
+    background:var(--panel-2); padding:9px 14px; display:flex; gap:12px; align-items:baseline;
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .brute-row .bshift{color:var(--text-faint); min-width:22px;}
+  .brute-row .bout{color:var(--text-soft); word-break:break-word;}
+  .brute-row.match{background:rgba(201,162,39,0.10);}
+  .brute-row.match .bshift{color:var(--gold);}
+  .brute-row.match .bout{color:var(--paper);}
+
+  .timeline{
+    margin-top:44px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; position:relative;
+  }
+  .timeline::before{
+    content:''; position:absolute; top:9px; left:6%; right:6%; height:1px; background:var(--line);
+  }
+  @media (max-width:720px){.timeline{grid-template-columns:1fr; gap:24px;} .timeline::before{display:none;}}
+  .tl-node{position:relative; padding-top:26px;}
+  .tl-node::before{
+    content:''; position:absolute; top:0; left:0; width:9px; height:9px; border-radius:50%;
+    background:var(--panel); border:2px solid var(--text-faint);
+  }
+  .tl-node.now::before{border-color:var(--gold); background:var(--gold);}
+  .tl-node h3{font-size:15px; margin-bottom:6px;}
+  .tl-node p{font-size:13px; color:var(--text-soft); margin:0;}
+
+  /* ---------- STRUCTURE / CHECKLIST ---------- */
+  .structure-layout{display:grid; grid-template-columns:0.9fr 1.1fr; gap:40px;}
+  @media (max-width:820px){.structure-layout{grid-template-columns:1fr;}}
+  pre.filetree{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:22px 24px; font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--text-soft);
+    line-height:1.7; overflow-x:auto;
+  }
+  pre.filetree .d{color:var(--gold);}
+  pre.filetree .c{color:var(--text-faint);}
+
+  .checklist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0;}
+  .checklist li{
+    display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line);
+    font-size:13.5px; color:var(--text-soft);
+  }
+  .checklist li:last-child{border-bottom:none;}
+  .checklist .tick{
+    width:16px; height:16px; border-radius:4px; background:var(--teal-dim); color:var(--teal);
+    display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; margin-top:2px;
+  }
+
+  footer{
+    border-top:1px solid var(--line); padding:36px 0; margin-top:20px;
+  }
+  footer .foot-row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  footer p{font-size:12.5px; color:var(--text-faint); margin:0;}
+
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;}
+    .feature-grid{grid-template-columns:1fr;}
+    .outputs{grid-template-columns:1fr;}
+  }
+  @media (max-width:640px){
+    .hero h1{font-size:34px;}
+    section{padding:52px 0;}
+    .wrap{padding:0 18px;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand"><span class="brand-mark"></span>DecodeLabs — Project 2</div>
+    <div class="navlinks">
+      <a href="#overview">Overview</a>
+      <a href="#try-it">Try it</a>
+      <a href="#how">How it works</a>
+      <a href="#math">The math</a>
+      <a href="#edge-cases">Edge cases</a>
+      <a href="#security">Security</a>
+      <a href="#structure">Structure</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="overview">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="hero-eyebrow"><span class="dash"></span>Cyber Security Industrial Training Kit · Batch 2026</div>
+      <h1>Basic Encryption &amp; <em>Decryption</em></h1>
+      <p class="lede">A Caesar cipher, built from first principles: characters become numbers, numbers get shifted and wrapped with modular arithmetic, and the same key that locks a message unlocks it again. This page is the project itself — read the reasoning, then try it live below.</p>
+      <div class="facts">
+        <div class="fact"><div class="num">26</div><div class="lbl">letters, mod 26</div></div>
+        <div class="fact"><div class="num">2</div><div class="lbl">functions: encrypt / decrypt</div></div>
+        <div class="fact"><div class="num">1</div><div class="lbl">shared key, both directions</div></div>
+      </div>
+    </div>
+    <div class="wheel-card">
+      <svg id="wheelSvg" viewBox="0 0 280 280">
+        <g class="ring-outer" id="outerRing"></g>
+        <g id="wheelGroup" class="ring-inner"></g>
+        <circle class="wheel-hub" cx="140" cy="140" r="30"></circle>
+        <text class="wheel-hub-label" x="140" y="137">SHIFT</text>
+        <text class="wheel-hub-label" x="140" y="150" id="hubShiftVal" style="font-size:15px;">+3</text>
+      </svg>
+      <p class="wheel-caption">The classic cipher disk — the inner ring rotates by the shift key. Line up a letter on the gold ring with the one below it on the outer ring to read the substitution.</p>
+    </div>
+  </div>
+</header>
+
+<section id="try-it">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">01 · Live demo</p>
+      <h2>What this project actually does</h2>
+      <p>Type a message and choose a shift key. The tool encrypts it, then immediately decrypts the result with the same key — proving the transformation is reversible, the way the DecodeLabs brief requires.</p>
+    </div>
+
+    <div class="tool">
+      <div class="tool-top">
+        <div class="tool-title">Input → <strong>encrypt(text, shift)</strong> → <strong>decrypt(cipher, shift)</strong> → Output</div>
+        <span class="chip" id="charCountChip">0 characters</span>
+      </div>
+
+      <label class="field-label" for="plaintextInput">Plaintext</label>
+      <textarea id="plaintextInput" rows="2" spellcheck="false">Hello, World! 123</textarea>
+
+      <div class="shift-row">
+        <label class="field-label" for="shiftRange" style="margin-bottom:0;">Shift key</label>
+        <input type="range" id="shiftRange" min="-30" max="30" value="3" step="1">
+        <div class="shift-readout">
+          <span class="val" id="shiftValLabel">3</span>
+          <span class="norm" id="shiftNormLabel">normalized: 3</span>
+        </div>
+      </div>
+
+      <div class="outputs">
+        <div class="output-box cipher">
+          <div class="field-label"><span>Ciphertext — encrypt(text, shift)</span></div>
+          <div class="out-text" id="cipherOut">—</div>
+        </div>
+        <div class="output-box decrypted">
+          <div class="field-label"><span>Decrypted — decrypt(cipher, shift)</span></div>
+          <div class="out-text" id="decryptOut">—</div>
+        </div>
+      </div>
+
+      <div class="validation-row">
+        <span class="dot" id="validDot"></span>
+        <span id="validText">Decrypted text matches the original plaintext.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">02 · Architecture</p>
+      <h2>The IPO model</h2>
+      <p>Every run follows the same three-stage shape, once for encryption and once — in reverse — for decryption.</p>
+    </div>
+
+    <div class="ipo-flow">
+      <div class="ipo-stage">
+        <span class="stage-tag">INPUT</span>
+        <h3>Plaintext + key</h3>
+        <p>Raw user text, plus an integer shift value the user chooses.</p>
+      </div>
+      <div class="ipo-arrow">→</div>
+      <div class="ipo-stage">
+        <span class="stage-tag">PROCESS</span>
+        <h3>Caesar shift</h3>
+        <p>Each letter is converted to a number, shifted, and wrapped with <code>% 26</code>.</p>
+      </div>
+      <div class="ipo-arrow">→</div>
+      <div class="ipo-stage">
+        <span class="stage-tag">OUTPUT</span>
+        <h3>Ciphertext</h3>
+        <p>Unreadable text that only someone with the key can reverse.</p>
+      </div>
+    </div>
+
+    <div class="flow-strip">
+      <span class="flow-node">plaintext</span><span class="flow-sep">→</span>
+      <span class="flow-node">ord(char)</span><span class="flow-sep">→</span>
+      <span class="flow-node">+ shift</span><span class="flow-sep">→</span>
+      <span class="flow-node">% 26</span><span class="flow-sep">→</span>
+      <span class="flow-node">chr(...)</span><span class="flow-sep">→</span>
+      <span class="flow-node">ciphertext</span>
+    </div>
+
+    <div class="section-head" style="margin-top:56px; margin-bottom:24px;">
+      <p class="kicker">What's included</p>
+      <h2 style="font-size:22px;">Every DecodeLabs deliverable, in one build</h2>
+    </div>
+    <div class="feature-grid">
+      <div class="feature">
+        <h3>Encrypt &amp; decrypt functions</h3>
+        <p>Two small, reusable functions — <code>encrypt(text, shift)</code> and <code>decrypt(text, shift)</code> — plus a <code>validate_shift()</code> helper.</p>
+      </div>
+      <div class="feature">
+        <h3>ASCII math, in the open</h3>
+        <p>Built on <code>ord()</code>, <code>chr()</code>, and modulo 26 — no external cryptography library, so the logic stays visible.</p>
+      </div>
+      <div class="feature">
+        <h3>Edge cases handled</h3>
+        <p>Spaces, punctuation, digits, and symbols pass through unchanged; only letters are shifted, and case is preserved.</p>
+      </div>
+      <div class="feature">
+        <h3>User-defined key</h3>
+        <p>Any integer works. Values above 26 or below 0 are normalized automatically — <code>29</code> behaves exactly like <code>3</code>.</p>
+      </div>
+      <div class="feature">
+        <h3>Round-trip validation</h3>
+        <p>Every run proves <code>decrypt(encrypt(text, shift), shift) == text</code>, with 17 automated tests behind it.</p>
+      </div>
+      <div class="feature">
+        <h3>Honest about its limits</h3>
+        <p>Documents exactly why a Caesar cipher isn't real security — brute force and frequency analysis, explained below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="math" style="border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">03 · The math</p>
+      <h2>From letter to number and back</h2>
+      <p>Computers don't store "A" — they store <code>65</code>. Encryption does its work entirely in that numeric space, then converts back to a letter at the very end.</p>
+    </div>
+
+    <div class="math-layout">
+      <div>
+        <div class="formula-card">
+          <div class="flabel">Encryption</div>
+          <div class="fmath">E<sub>n</sub>(x) = (x + n) mod 26</div>
+        </div>
+        <div class="formula-card">
+          <div class="flabel">Decryption</div>
+          <div class="fmath">D<sub>n</sub>(x) = (x − n) mod 26</div>
+        </div>
+        <div class="formula-card">
+          <div class="flabel">ASCII ranges used</div>
+          <div style="font-size:13.5px; color:var(--text-soft); line-height:1.9;">
+            Uppercase — <span class="mono" style="color:var(--text);">A = 65 … Z = 90</span><br>
+            Lowercase — <span class="mono" style="color:var(--text);">a = 97 … z = 122</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stepper">
+        <div class="stepper-head">
+          <div>
+            <div class="field-label" style="margin-bottom:4px;">Live trace — first letter of your plaintext</div>
+            <div style="font-size:12.5px; color:var(--text-faint);">Updates as you type or move the shift slider above</div>
+          </div>
+          <div class="letter-badge" id="stepLetterBadge">H</div>
+        </div>
+        <ul class="step-list" id="stepList"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="edge-cases" style="border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">04 · Edge cases</p>
+      <h2>Only letters move</h2>
+      <p>The DecodeLabs brief specifically calls out spaces and punctuation. Here, anything that isn't <code>A–Z</code> or <code>a–z</code> is left exactly as it was.</p>
+    </div>
+
+    <table class="edge-table">
+      <thead>
+        <tr><th>Input</th><th>Shift</th><th>Output</th><th>What's preserved</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono-cell">Hello, World!</td><td class="mono-cell">3</td><td class="mono-cell">Khoor, Zruog!</td><td><span class="kept">comma · exclamation mark · space</span></td></tr>
+        <tr><td class="mono-cell">Test123</td><td class="mono-cell">3</td><td class="mono-cell">Whvw123</td><td><span class="kept">digits</span></td></tr>
+        <tr><td class="mono-cell">XYZ</td><td class="mono-cell">3</td><td class="mono-cell">ABC</td><td><span class="kept">alphabet wrap-around</span></td></tr>
+        <tr><td class="mono-cell">Hello</td><td class="mono-cell">26</td><td class="mono-cell">Hello</td><td><span class="kept">shift 26 ≡ shift 0</span></td></tr>
+        <tr><td class="mono-cell">Hello</td><td class="mono-cell">29</td><td class="mono-cell">Khoor</td><td><span class="kept">shift 29 ≡ shift 3</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="security" style="border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">05 · Security reality check</p>
+      <h2>Why this isn't real protection</h2>
+      <p>A Caesar cipher demonstrates the idea of encryption — it should never guard anything actually sensitive. Two weaknesses explain why.</p>
+    </div>
+
+    <div class="vuln-grid">
+      <div class="vuln-card">
+        <div class="v-tag">Weakness 01</div>
+        <h3>Tiny key space</h3>
+        <p>There are only 25 meaningful shifts. A computer — or a patient person — can try every single one in well under a second and simply read off the one that makes sense.</p>
+      </div>
+      <div class="vuln-card">
+        <div class="v-tag">Weakness 02</div>
+        <h3>Pattern preservation</h3>
+        <p>Shifting doesn't change how often each letter appears — just its name. Since "E" is common in English, frequency analysis can spot the shift without even trying all 25.</p>
+      </div>
+    </div>
+
+    <button class="brute-toggle" id="bruteBtn">Show all 26 possible decryptions of your ciphertext →</button>
+    <div id="bruteTable">
+      <div class="brute-grid" id="bruteGrid"></div>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-node now">
+        <h3>Caesar cipher</h3>
+        <p>Fixed shift, 25 possible keys. Built here to teach the fundamentals.</p>
+      </div>
+      <div class="tl-node">
+        <h3>Modern cryptography</h3>
+        <p>Confusion and diffusion make the key–ciphertext relationship far harder to trace.</p>
+      </div>
+      <div class="tl-node">
+        <h3>AES</h3>
+        <p>128-bit+ keys and multiple XOR-based rounds — the standard for real-world confidentiality.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="structure" style="border-top:1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="kicker">06 · Project structure</p>
+      <h2>What's in the repository</h2>
+    </div>
+
+    <div class="structure-layout">
+      <pre class="filetree"><span class="d">project2-caesar-cipher/</span>
+├── README.md
+├── requirements.txt
+├── main.py            <span class="c"># interactive CLI</span>
+├── caesar_cipher.py   <span class="c"># encrypt / decrypt / validate_shift</span>
+├── <span class="d">tests/</span>
+│   └── test_caesar_cipher.py  <span class="c"># 17 automated tests</span>
+└── <span class="d">screenshots/</span>
+    └── .gitkeep</pre>
+
+      <ul class="checklist">
+        <li><span class="tick">✓</span>Implements the IPO cycle end to end</li>
+        <li><span class="tick">✓</span>Uses <code>ord()</code>, <code>chr()</code>, and <code>% 26</code> directly — no crypto library</li>
+        <li><span class="tick">✓</span>Handles spaces, punctuation, digits, and symbols correctly</li>
+        <li><span class="tick">✓</span>Validates itself: decrypted output always matches the original</li>
+        <li><span class="tick">✓</span>Accepts negative and out-of-range shift keys safely</li>
+        <li><span class="tick">✓</span>Re-prompts on invalid (non-numeric) shift input instead of crashing</li>
+        <li><span class="tick">✓</span>Documents Caesar cipher's real-world security limitations</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <p>DecodeLabs Cyber Security Industrial Training Kit — Batch 2026 · Project 2</p>
+    <p>Educational implementation only — not for protecting real sensitive data.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  function normalizeShift(n){
+    return ((n % 26) + 26) % 26;
+  }
+
+  function shiftChar(ch, shift){
+    if (/[A-Z]/.test(ch)){
+      return String.fromCharCode((ch.charCodeAt(0) - 65 + shift + 2600) % 26 + 65);
+    }
+    if (/[a-z]/.test(ch)){
+      return String.fromCharCode((ch.charCodeAt(0) - 97 + shift + 2600) % 26 + 97);
+    }
+    return ch;
+  }
+
+  function encrypt(text, shift){
+    const s = normalizeShift(shift);
+    return text.split('').map(c => shiftChar(c, s)).join('');
+  }
+  function decrypt(text, shift){
+    const s = normalizeShift(shift);
+    return text.split('').map(c => shiftChar(c, (26 - s) % 26)).join('');
+  }
+
+  // ---------- Cipher wheel ----------
+  const CX = 140, CY = 140, R_OUTER = 118, R_INNER = 92;
+  const outerRing = document.getElementById('outerRing');
+  const wheelGroup = document.getElementById('wheelGroup');
+
+  function buildRing(group, radius, discClass){
+    const ns = 'http://www.w3.org/2000/svg';
+    const disc = document.createElementNS(ns, 'circle');
+    disc.setAttribute('cx', CX); disc.setAttribute('cy', CY);
+    disc.setAttribute('r', radius + 14);
+    disc.setAttribute('class', 'disc');
+    if(discClass === 'outer'){ disc.setAttribute('stroke-width','1'); }
+    group.appendChild(disc);
+
+    for (let i = 0; i < 26; i++){
+      const angle = (i / 26) * 2 * Math.PI - Math.PI/2;
+      const x = CX + radius * Math.cos(angle);
+      const y = CY + radius * Math.sin(angle);
+      const t = document.createElementNS(ns, 'text');
+      t.setAttribute('x', x); t.setAttribute('y', y + 3);
+      t.setAttribute('text-anchor','middle');
+      t.textContent = ALPHA[i];
+      group.appendChild(t);
+    }
+  }
+  buildRing(outerRing, R_OUTER, 'outer');
+  buildRing(wheelGroup, R_INNER, 'inner');
+
+  function rotateWheel(shift){
+    const deg = (shift / 26) * 360;
+    wheelGroup.style.transform = `rotate(${deg}deg)`;
+    document.getElementById('hubShiftVal').textContent = (shift >= 0 ? '+' : '') + shift;
+  }
+
+  // ---------- Live tool ----------
+  const plaintextInput = document.getElementById('plaintextInput');
+  const shiftRange = document.getElementById('shiftRange');
+  const shiftValLabel = document.getElementById('shiftValLabel');
+  const shiftNormLabel = document.getElementById('shiftNormLabel');
+  const cipherOut = document.getElementById('cipherOut');
+  const decryptOut = document.getElementById('decryptOut');
+  const validDot = document.getElementById('validDot');
+  const validText = document.getElementById('validText');
+  const charCountChip = document.getElementById('charCountChip');
+  const stepLetterBadge = document.getElementById('stepLetterBadge');
+  const stepList = document.getElementById('stepList');
+  const bruteBtn = document.getElementById('bruteBtn');
+  const bruteTable = document.getElementById('bruteTable');
+  const bruteGrid = document.getElementById('bruteGrid');
+
+  function renderSteps(char, shift){
+    stepList.innerHTML = '';
+    if (!char || !/[A-Za-z]/.test(char)){
+      stepLetterBadge.textContent = '—';
+      const li = document.createElement('li');
+      li.innerHTML = `<span></span><span class="step-desc">No alphabetic character to trace yet — type a letter above.</span><span></span>`;
+      stepList.appendChild(li);
+      return;
+    }
+    const s = normalizeShift(shift);
+    const base = /[A-Z]/.test(char) ? 65 : 97;
+    const ascii = char.charCodeAt(0);
+    const index = ascii - base;
+    const afterShift = index + s;
+    const afterMod = afterShift % 26;
+    const finalAscii = afterMod + base;
+    const result = String.fromCharCode(finalAscii);
+
+    stepLetterBadge.textContent = char.toUpperCase();
+
+    const rows = [
+      ['1', `ord('${char}')`, ascii],
+      ['2', `− base (${base})`, index],
+      ['3', `+ shift (${s})`, afterShift],
+      ['4', `% 26`, afterMod],
+      ['5', `+ base (${base})`, finalAscii],
+      ['6', `chr(${finalAscii})`, result],
+    ];
+    rows.forEach((r, i) => {
+      const li = document.createElement('li');
+      if (i === rows.length - 1) li.classList.add('result');
+      li.innerHTML = `<span class="step-n">${r[0]}</span><span class="step-desc">${r[1]}</span><span class="step-val">${r[2]}</span>`;
+      stepList.appendChild(li);
+    });
+  }
+
+  function renderBruteForce(cipher){
+    bruteGrid.innerHTML = '';
+    const currentShift = normalizeShift(parseInt(shiftRange.value, 10));
+    for (let s = 0; s < 26; s++){
+      const attempt = decrypt(cipher, s);
+      const row = document.createElement('div');
+      row.className = 'brute-row' + (s === currentShift ? ' match' : '');
+      row.innerHTML = `<span class="bshift">${s}</span><span class="bout">${escapeHtml(attempt) || '·'}</span>`;
+      bruteGrid.appendChild(row);
+    }
+  }
+
+  function escapeHtml(str){
+    return str.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  }
+
+  function update(){
+    const text = plaintextInput.value;
+    const rawShift = parseInt(shiftRange.value, 10);
+    const s = normalizeShift(rawShift);
+
+    shiftValLabel.textContent = (rawShift >= 0 ? '+' : '') + rawShift;
+    shiftNormLabel.textContent = `normalized: ${s}`;
+    charCountChip.textContent = `${text.length} character${text.length === 1 ? '' : 's'}`;
+
+    const cipher = encrypt(text, rawShift);
+    const back = decrypt(cipher, rawShift);
+
+    cipherOut.textContent = cipher || '—';
+    decryptOut.textContent = back || '—';
+
+    const matches = back === text;
+    validDot.style.background = matches ? 'var(--teal)' : 'var(--rust)';
+    validDot.style.boxShadow = matches ? '0 0 0 3px rgba(79,184,160,0.18)' : '0 0 0 3px rgba(192,85,47,0.2)';
+    validText.textContent = matches
+      ? 'Decrypted text matches the original plaintext.'
+      : 'Mismatch detected — this should never happen; check the console.';
+
+    rotateWheel(rawShift);
+
+    const firstLetter = text.split('').find(c => /[A-Za-z]/.test(c));
+    renderSteps(firstLetter, rawShift);
+
+    if (bruteTable.classList.contains('open')){
+      renderBruteForce(cipher);
+    }
+  }
+
+  plaintextInput.addEventListener('input', update);
+  shiftRange.addEventListener('input', update);
+
+  bruteBtn.addEventListener('click', () => {
+    const isOpen = bruteTable.classList.toggle('open');
+    bruteBtn.textContent = isOpen
+      ? 'Hide the 26 possible decryptions ↑'
+      : 'Show all 26 possible decryptions of your ciphertext →';
+    if (isOpen){
+      renderBruteForce(encrypt(plaintextInput.value, parseInt(shiftRange.value, 10)));
+    }
+  });
+
+  update();
+})();
+</script>
+
+</body>
+</html>
