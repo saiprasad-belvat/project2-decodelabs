@@ -303,7 +303,7 @@ Original text matches decrypted text.
 No external dependencies are required — only the Python standard library.
 
 ```bash
-git clone <this-repo-url>
+git clone https://github.com/saiprasad-belvat/project2-decodelabs
 cd project2-caesar-cipher
 ```
 
