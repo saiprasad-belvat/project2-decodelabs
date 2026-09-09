@@ -330,10 +330,10 @@ letter of your message.
 
 Run this command to run web application:
 
-'''bash
+```bash
 cd webapp
 start index.html
-'''
+```
 
 You can also use the functions directly in your own scripts:
 
