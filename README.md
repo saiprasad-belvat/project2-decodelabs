@@ -298,6 +298,16 @@ Original text matches decrypted text.
 ========================================
 ```
 
+## 📸 Project Screenshots
+
+![Screenshot 1](screenshots/Screenshot%202026-09-09%20182056.png)
+
+![Screenshot 2](screenshots/Screenshot%202026-09-09%20182122.png)
+
+![Screenshot 3](screenshots/Screenshot%202026-09-09%20182144.png)
+
+![Screenshot 4](screenshots/Screenshot%202026-09-09%20182215.png)
+
 ## 18. Installation
 
 No external dependencies are required — only the Python standard library.
