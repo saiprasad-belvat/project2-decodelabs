@@ -328,6 +328,13 @@ displays the ciphertext, the decrypted text, and a validation result. You
 can also opt into a step-by-step "algorithm visualization" for the first
 letter of your message.
 
+Run this command to run web application:
+
+'''bash
+cd webapp
+start index.html
+'''
+
 You can also use the functions directly in your own scripts:
 
 ```python
